@@ -59,18 +59,18 @@ git clone https://github.com/lakshitasethia/Pixel-Art-Generator.git
 cd Pixel-Art-Generator
 
 # 3. Open with Live Server (VS Code extension) or any local server
-# Landing page → landing.html
-# App → index.html
+# Landing page → index.html
+# App → next.html
 ```
 
-> ⚠️ Camera access requires a local server or HTTPS. Opening index.html directly as a file won't work for webcam features.
+> ⚠️ Camera access requires a local server or HTTPS. Opening next.html directly as a file won't work for webcam features.
 
 ---
 
 ## 🎮 How It Works
 
 ```
-landing.html → ENTER THE WORLD → index.html
+index.html → ENTER THE WORLD → next.html
 ```
 
 1. **Open Camera** — click the Camera button to start your live pixel feed
@@ -85,8 +85,8 @@ landing.html → ENTER THE WORLD → index.html
 
 ```
 Pixel-Art-Generator/
-├── landing.html      # Landing page (pixel world hero, features, CTA)
-├── index.html        # Main pixel art generator app
+├── index.html        # Landing page (pixel world hero, features, CTA)
+├── next.html         # Main pixel art generator app
 ├── style.css         # All styles
 ├── script.js         # Core JS — camera, canvas, palettes, capture
 └── README.md
