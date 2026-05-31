@@ -1,86 +1,128 @@
-<img src="logo.svg" width="64" height="64" align="left" style="margin-right: 16px"/>
+# 🎮 PIXEL.CAM
 
-# Pixel Art Generator
+<div align="center">
 
-A lightweight, browser-based pixel art tool built with vanilla HTML, CSS, and JavaScript. No dependencies, no build steps — just open and draw.
+**your face. pixelated.**
 
-<br/>
+![HTML](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
+![CSS](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+![Canvas API](https://img.shields.io/badge/Canvas_API-39ff14?style=for-the-badge&logoColor=black)
 
----
+*A retro-inspired, no-framework pixel art camera app built with pure HTML, CSS & JS.*
 
-## Features
+[🕹️ Live Demo](#) · [🐛 Report Bug](https://github.com/lakshitasethia/Pixel-Art-Generator/issues) · [✨ Request Feature](https://github.com/lakshitasethia/Pixel-Art-Generator/issues)
 
-- Configurable grid size — set any dimension and the canvas updates instantly
-- Freehand drawing with click and drag support
-- Live colour picker for seamless colour switching mid-draw
-- Undo and redo support — step through your entire drawing history
-- Keyboard shortcuts — `Ctrl+Z` to undo, `Ctrl+Shift+Z` to redo
-- Image to pixel art — upload any image and watch it get pixelated to your grid size
-- Camera capture — take a live photo and convert it to pixel art instantly
-- Download your artwork as a PNG
-- One-click reset that preserves your current grid size
+</div>
 
 ---
 
-## Live Demo
+## 🌟 What is PIXEL.CAM?
 
-[https://lakshitasethia.github.io/Pixel-Art-Generator/](https://lakshitasethia.github.io/Pixel-Art-Generator/)
+PIXEL.CAM turns your webcam into a real-time pixel art generator. Open your camera, pick a retro color palette, throw on a frame, toggle some glitch — and capture yourself as an 8-bit legend. No sign up. No filters. Just pixels.
 
 ---
 
-## Getting Started
+## ✨ Features
 
-Clone the repository and open `index.html` in your browser.
+| Feature | Description |
+|---|---|
+| 🎥 **Live Camera Feed** | Real-time webcam pixelation using the Canvas API |
+| 🎨 **Palette Filters** | Gameboy · Synthwave · C64 · Neon · Ash · Original |
+| 🖼️ **Retro Frames** | Overlay arcade-style frames on your live feed |
+| ⚡ **Glitch Effect** | Toggle a live glitch distortion for extra chaos |
+| 📸 **Instant Capture** | Freeze your frame and download it as a PNG |
+| ✏️ **Pixel Drawing Grid** | Draw your own pixel art when the camera is off |
+| ↩️ **Undo / Redo** | Full history stack for drawing mode |
+| 🔲 **Adjustable Pixel Size** | Slider from fine (5px) to chunky (30px) |
+
+---
+
+## 🛠️ Tech Stack
+
+Built with absolutely zero frameworks or dependencies. Just vibes and vanilla JS.
+
+- **HTML5 Canvas API** — live pixelation, drawing grid, frame capture
+- **Vanilla JavaScript** — camera stream, palette remapping, glitch effect, undo/redo stack
+- **Pure CSS** — animations, tab UI, retro styling
+- **Google Fonts** — Press Start 2P + Silkscreen for that pixel font energy
+
+---
+
+## 🚀 Run Locally
 
 ```bash
+# 1. Clone the repo
 git clone https://github.com/lakshitasethia/Pixel-Art-Generator.git
+
+# 2. Navigate into it
 cd Pixel-Art-Generator
-open index.html
+
+# 3. Open with Live Server (VS Code extension) or any local server
+# Landing page → landing.html
+# App → index.html
 ```
 
-No installation or setup required.
+> ⚠️ Camera access requires a local server or HTTPS. Opening index.html directly as a file won't work for webcam features.
 
 ---
 
-## Usage
+## 🎮 How It Works
 
-| Action | How |
+```
+landing.html → ENTER THE WORLD → index.html
+```
+
+1. **Open Camera** — click the Camera button to start your live pixel feed
+2. **Adjust** — use the pixel size slider and pick a palette from the Adjust tab
+3. **Add a Frame** — jump to the Frames tab and pick your overlay
+4. **Glitch it** — toggle the Glitch button for distortion chaos
+5. **Capture** — hit Capture, download your pixel portrait instantly
+
+---
+
+## 📁 Project Structure
+
+```
+Pixel-Art-Generator/
+├── landing.html      # Landing page (pixel world hero, features, CTA)
+├── index.html        # Main pixel art generator app
+├── style.css         # All styles
+├── script.js         # Core JS — camera, canvas, palettes, capture
+└── README.md
+```
+
+---
+
+## 🎨 Palette Reference
+
+| Palette | Vibe |
 |---|---|
-| Draw | Click and drag across the grid |
-| Change colour | Use the colour picker in the header |
-| Resize grid | Enter a number in the grid input and press Enter |
-| Undo | Click Undo or press `Ctrl+Z` |
-| Redo | Click Redo or press `Ctrl+Shift+Z` |
-| Upload image | Click the file input and select any image |
-| Camera capture | Click Camera, allow access, then click Capture |
-| Download | Click Download to save your canvas as a PNG |
-| Reset canvas | Click the Reset button |
+| **Original** | Real webcam colors |
+| **Gameboy** | 4 shades of green, pure nostalgia |
+| **Synthwave** | Dark navy + hot pink + cyan + yellow |
+| **C64** | Commodore 64's iconic 16-color palette |
+| **Neon** | High saturation electric colors |
+| **Ash** | Desaturated cool-toned grayscale |
 
 ---
 
-## Project Structure
+## 🙋‍♀️ Built By
 
-```
-pixel-art-generator/
-├── index.html
-├── style.css
-└── script.js
-```
+**Lakshita Sethia** — 2nd year CS student @ DJ Sanghvi, Mumbai
+
+[![GitHub](https://img.shields.io/badge/GitHub-lakshitasethia-181717?style=flat&logo=github)](https://github.com/lakshitasethia)
 
 ---
 
-## Technical Details
+## 📜 License
 
-- Grid is generated dynamically using CSS Grid with `repeat(n, 1fr)` columns and rows
-- Drawing state is tracked via `mousedown` and `mouseup` events on the `window` object, enabling smooth drag-to-paint behaviour
-- Undo/redo is implemented using two stacks — each paint action pushes `{ div, previousColor }` onto the history stack, and undo/redo swap between them
-- Colour is read live from the input on every `mouseover` event, ensuring the selected colour is always current
-- Image pixelation works by drawing the uploaded image onto a hidden canvas scaled to the grid size, then sampling each pixel's RGB value using `getImageData`
-- Camera capture uses `navigator.mediaDevices.getUserMedia` to stream live video, snapshots a frame onto a canvas, and feeds it through the same pixelation pipeline
-- Download renders the current grid state onto a scaled canvas and triggers a PNG download via a programmatic anchor click
+MIT — free to use, fork, and pixelate.
 
 ---
 
-## License
+<div align="center">
 
-MIT
+*made with 💚 and way too many pixels*
+
+</div>
