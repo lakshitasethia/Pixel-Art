@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PIXEL.CAM — Your Face. Pixelated.</title>
+  <meta name="description" content="A neon arcade-style retro pixel art camera web app. Turn your live camera feed into retro 8-bit aesthetic art.">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+  
+  <style>
+    /* Design Tokens */
+    :root {
+      --bg: #0d0d1a;
+      --surface: #111122;
+      --primary: #39ff14; /* Neon Green */
+      --secondary: #ff6b00; /* Neon Orange */
+      --text: #ffffff;
+      --text-muted: #8e8ea8;
+      --font-heading: 'Press Start 2P', monospace;
+      --font-body: 'Silkscreen', sans-serif;
+      --border-glow: 0 0 10px rgba(57, 255, 20, 0.3), inset 0 0 10px rgba(57, 255, 20, 0.2);
+      --border-glow-hover: 0 0 20px rgba(57, 255, 20, 0.6), inset 0 0 15px rgba(57, 255, 20, 0.4);
+      --btn-glow-orange: 0 0 20px rgba(255, 107, 0, 0.6), inset 0 0 15px rgba(255, 107, 0, 0.4);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      cursor: crosshair;
+    }
+
+    html, body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+      line-height: 1.6;
+    }
+
+    /* Selection Color */
+    ::selection {
+      background-color: var(--primary);
+      color: var(--bg);
+    }
+
+    /* CRT Scanline Overlay */
+    .crt-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: repeating-linear-gradient(
+        rgba(13, 13, 26, 0) 0%,
+        rgba(0, 0, 0, 0.3) 50%,
+        rgba(13, 13, 26, 0) 100%
+      );
+      background-size: 100% 4px;
+      z-index: 9999;
+      pointer-events: none;
+      opacity: 0.08;
+    }
+
+    .crt-overlay::before {
+      content: " ";
+      display: block;
+      position: fixed;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+      z-index: 9999;
+      background-size: 100% 2px, 3px 100%;
+      pointer-events: none;
+    }
+
+    /* Hero Section */
+    .hero-container {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+      overflow: hidden;
+      background-color: var(--bg);
+    }
+
+
+
+    /* Background Scene Layer */
+    .pixel-scene {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    /* Foreground Content */
+    .hero-content {
+      position: relative;
+      z-index: 3;
+      max-width: 900px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .hero-label {
+      font-family: var(--font-body);
+      font-size: 1.1rem;
+      color: #5c94fc;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: bold;
+    }
+
+    .hero-title {
+      font-family: var(--font-heading);
+      font-size: 3.5rem;
+      color: #ffffff;
+      line-height: 1.5;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .blinking-cursor {
+      color: #ffffff;
+      animation: blink-cursor 1s step-start infinite;
+    }
+
+    @keyframes blink-cursor {
+      50% { opacity: 0; }
+    }
+
+    .hero-subtitle {
+      font-family: var(--font-body);
+      font-size: 1.2rem;
+      color: #aaaaaa;
+      letter-spacing: 1px;
+      margin-bottom: 24px;
+      max-width: 600px;
+      text-transform: none;
+    }
+
+    /* CTA Button specs: ENTER THE WORLD → */
+    .btn-enter {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #39ff14;
+      color: #0d0d1a;
+      font-family: var(--font-heading);
+      font-size: 1.1rem;
+      padding: 16px 36px;
+      border: none;
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: all 0.25s ease;
+      letter-spacing: 1px;
+      box-shadow: 0 0 10px rgba(57, 255, 20, 0.4);
+    }
+
+    .btn-enter:hover {
+      box-shadow: 0 0 20px #39ff14;
+      transform: translateY(-2px);
+    }
+
+    .btn-enter:active {
+      transform: translateY(1px);
+    }
+
+    /* Common Button Design (retained for footer) */
+    .btn-cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background-color: rgba(13, 13, 26, 0.8);
+      color: var(--primary);
+      font-family: var(--font-body);
+      font-size: 1.4rem;
+      padding: 16px 36px;
+      border: 2px solid var(--primary);
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      letter-spacing: 1px;
+      box-shadow: var(--border-glow);
+      text-shadow: 0 0 5px rgba(57, 255, 20, 0.5);
+    }
+
+    .btn-cta:hover {
+      background-color: var(--primary);
+      color: var(--bg);
+      box-shadow: var(--border-glow-hover);
+      text-shadow: none;
+      transform: translateY(-2px);
+    }
+
+    .btn-cta:active {
+      transform: translateY(1px);
+    }
+
+    /* Pixel World Elements */
+    .pixel-art {
+      position: absolute;
+    }
+
+    /* Pixel Star */
+    .pixel-star {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: transparent;
+      z-index: 2;
+      box-shadow: 
+        8px 0px #ffffff,
+        0px 8px #ffffff, 8px 8px #ffffff, 16px 8px #ffffff,
+        8px 16px #ffffff;
+      animation: star-blink 2.5s infinite alternate;
+    }
+
+    .star-1 { top: 15%; left: 15%; animation-delay: 0s; }
+    .star-2 { top: 25%; left: 75%; animation-delay: 0.8s; }
+    .star-3 { top: 10%; left: 45%; animation-delay: 1.4s; }
+
+    @keyframes star-blink {
+      0%, 20% { opacity: 0.2; transform: scale(0.8); }
+      80%, 100% { opacity: 1; transform: scale(1); }
+    }
+
+    /* Pixel Cloud */
+    .pixel-cloud {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: transparent;
+      z-index: 3;
+      opacity: 0.35;
+      box-shadow: 
+        48px 0px #ffffff, 56px 0px #ffffff, 64px 0px #ffffff, 72px 0px #ffffff,
+        32px 8px #ffffff, 40px 8px #ffffff, 48px 8px #ffffff, 56px 8px #ffffff, 64px 8px #ffffff, 72px 8px #ffffff, 80px 8px #ffffff, 88px 8px #ffffff,
+        16px 16px #ffffff, 24px 16px #ffffff, 32px 16px #ffffff, 40px 16px #ffffff, 48px 16px #ffffff, 56px 16px #ffffff, 64px 16px #ffffff, 72px 16px #ffffff, 80px 16px #ffffff, 88px 16px #ffffff, 96px 16px #ffffff, 104px 16px #ffffff,
+        0px 24px #ffffff, 8px 24px #ffffff, 16px 24px #ffffff, 24px 24px #ffffff, 32px 24px #ffffff, 40px 24px #ffffff, 48px 24px #ffffff, 56px 24px #ffffff, 64px 24px #ffffff, 72px 24px #ffffff, 80px 24px #ffffff, 88px 24px #ffffff, 96px 24px #ffffff, 104px 24px #ffffff, 112px 24px #ffffff, 120px 24px #ffffff,
+        0px 32px #ffffff, 8px 32px #ffffff, 16px 32px #ffffff, 24px 32px #ffffff, 32px 32px #ffffff, 40px 32px #ffffff, 48px 32px #ffffff, 56px 32px #ffffff, 64px 32px #ffffff, 72px 32px #ffffff, 80px 32px #ffffff, 88px 32px #ffffff, 96px 32px #ffffff, 104px 32px #ffffff, 112px 32px #ffffff, 120px 32px #ffffff,
+        8px 40px #ffffff, 16px 40px #ffffff, 24px 40px #ffffff, 32px 40px #ffffff, 40px 40px #ffffff, 48px 40px #ffffff, 56px 40px #ffffff, 64px 40px #ffffff, 72px 40px #ffffff, 80px 40px #ffffff, 88px 40px #ffffff, 96px 40px #ffffff, 104px 40px #ffffff, 112px 40px #ffffff;
+    }
+
+    .cloud-1 {
+      top: 18%;
+      animation: cloud-float 35s linear infinite;
+    }
+
+    .cloud-2 {
+      top: 28%;
+      animation: cloud-float 50s linear infinite;
+      animation-delay: -20s;
+    }
+
+    @keyframes cloud-float {
+      0% { left: -150px; }
+      100% { left: calc(100% + 150px); }
+    }
+
+    /* Pixel Camera */
+    .pixel-camera {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: transparent;
+      bottom: 12%;
+      left: 25%;
+      z-index: 4;
+      box-shadow: 
+        48px 0px #fbd000, 56px 0px #fbd000, 64px 0px #fbd000, 72px 0px #fbd000,
+        32px 8px #43a047, 40px 8px #43a047, 48px 8px #43a047, 56px 8px #43a047, 64px 8px #43a047, 72px 8px #43a047, 80px 8px #43a047, 88px 8px #43a047,
+        16px 16px #43a047, 24px 16px #43a047, 32px 16px #43a047, 40px 16px #43a047, 48px 16px #43a047, 56px 16px #43a047, 64px 16px #43a047, 72px 16px #43a047, 80px 16px #43a047, 88px 16px #43a047, 96px 16px #43a047, 104px 16px #43a047,
+        0px 24px #43a047, 8px 24px #43a047, 16px 24px #43a047, 24px 24px #43a047, 32px 24px #43a047, 40px 24px #43a047, 48px 24px #43a047, 56px 24px #43a047, 64px 24px #43a047, 72px 24px #43a047, 80px 24px #43a047, 88px 24px #43a047, 96px 24px #43a047, 104px 24px #43a047, 112px 24px #43a047, 120px 24px #43a047,
+        0px 32px #43a047, 8px 32px #43a047, 16px 32px #000000, 24px 32px #000000, 32px 32px #000000, 40px 32px #000000, 48px 32px #000000, 56px 32px #000000, 64px 32px #000000, 72px 32px #000000, 80px 32px #000000, 88px 32px #000000, 96px 32px #43a047, 104px 32px #43a047, 112px 32px #43a047, 120px 32px #43a047,
+        0px 40px #43a047, 8px 40px #000000, 16px 40px #000000, 24px 40px #ffffff, 32px 40px #ffffff, 40px 40px #ffffff, 48px 40px #ffffff, 56px 40px #ffffff, 64px 40px #ffffff, 72px 40px #ffffff, 80px 40px #ffffff, 88px 40px #000000, 96px 40px #000000, 104px 40px #43a047, 112px 40px #43a047, 120px 40px #43a047,
+        0px 48px #43a047, 8px 48px #000000, 16px 48px #000000, 24px 48px #ffffff, 32px 48px #000000, 40px 48px #000000, 48px 48px #000000, 56px 48px #000000, 64px 48px #000000, 72px 48px #000000, 80px 48px #ffffff, 88px 48px #000000, 96px 48px #000000, 104px 48px #43a047, 112px 48px #43a047, 120px 48px #e52521,
+        0px 56px #43a047, 8px 56px #000000, 16px 56px #000000, 24px 56px #ffffff, 32px 56px #000000, 40px 56px #ffffff, 48px 56px #ffffff, 56px 56px #ffffff, 64px 56px #ffffff, 72px 56px #000000, 80px 56px #ffffff, 88px 56px #000000, 96px 56px #000000, 104px 56px #43a047, 112px 56px #43a047, 120px 56px #e52521,
+        0px 64px #43a047, 8px 64px #000000, 16px 64px #000000, 24px 64px #ffffff, 32px 64px #000000, 40px 64px #ffffff, 48px 64px #000000, 56px 64px #000000, 64px 64px #ffffff, 72px 64px #000000, 80px 64px #ffffff, 88px 64px #000000, 96px 64px #000000, 104px 64px #43a047, 112px 64px #43a047, 120px 64px #43a047,
+        0px 72px #43a047, 8px 72px #000000, 16px 72px #000000, 24px 72px #ffffff, 32px 72px #000000, 40px 72px #ffffff, 48px 72px #ffffff, 56px 72px #ffffff, 64px 72px #ffffff, 72px 72px #000000, 80px 72px #ffffff, 88px 72px #000000, 96px 72px #000000, 104px 72px #43a047, 112px 72px #43a047, 120px 72px #43a047,
+        0px 80px #43a047, 8px 80px #000000, 16px 80px #000000, 24px 80px #ffffff, 32px 80px #000000, 40px 80px #000000, 48px 80px #000000, 56px 80px #000000, 64px 80px #000000, 72px 80px #000000, 80px 80px #ffffff, 88px 80px #000000, 96px 80px #000000, 104px 80px #43a047, 112px 80px #43a047, 120px 80px #43a047,
+        0px 88px #43a047, 8px 88px #000000, 16px 88px #000000, 24px 88px #ffffff, 32px 88px #ffffff, 40px 88px #ffffff, 48px 88px #ffffff, 56px 88px #ffffff, 64px 88px #ffffff, 72px 88px #ffffff, 80px 88px #ffffff, 88px 88px #000000, 96px 88px #000000, 104px 88px #43a047, 112px 88px #43a047, 120px 88px #43a047,
+        0px 96px #43a047, 8px 96px #43a047, 16px 96px #000000, 24px 96px #000000, 32px 96px #000000, 40px 96px #000000, 48px 96px #000000, 56px 96px #000000, 64px 96px #000000, 72px 96px #000000, 80px 96px #000000, 88px 96px #000000, 96px 96px #43a047, 104px 96px #43a047, 112px 96px #43a047, 120px 96px #43a047,
+        0px 104px #43a047, 8px 104px #43a047, 16px 104px #43a047, 24px 104px #43a047, 32px 104px #43a047, 40px 104px #43a047, 48px 104px #43a047, 56px 104px #43a047, 64px 104px #43a047, 72px 104px #43a047, 80px 104px #43a047, 88px 104px #43a047, 96px 104px #43a047, 104px 104px #43a047, 112px 104px #43a047, 120px 104px #43a047,
+        16px 112px #43a047, 24px 112px #43a047, 32px 112px #43a047, 40px 112px #43a047, 48px 112px #43a047, 56px 112px #43a047, 64px 112px #43a047, 72px 112px #43a047, 80px 112px #43a047, 88px 112px #43a047, 96px 112px #43a047, 104px 112px #43a047,
+        32px 120px #43a047, 40px 120px #43a047, 48px 120px #43a047, 56px 120px #43a047, 64px 120px #43a047, 72px 120px #43a047, 80px 120px #43a047, 88px 120px #43a047;
+    }
+
+    /* Pixel Walking Person */
+    .pixel-person {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: transparent;
+      bottom: 12%;
+      z-index: 5;
+      animation: person-walk 0.4s steps(1) infinite, person-travel 12s linear infinite;
+    }
+
+    @keyframes person-walk {
+      0%, 49.9% {
+        box-shadow: 
+          32px 0px #000000, 40px 0px #000000, 48px 0px #000000, 56px 0px #000000,
+          24px 8px #000000, 32px 8px #000000, 40px 8px #fbc0a0, 48px 8px #fbc0a0, 56px 8px #000000, 64px 8px #000000,
+          24px 16px #000000, 32px 16px #fbc0a0, 40px 16px #ffffff, 48px 16px #fbc0a0, 56px 16px #ffffff, 64px 16px #fbc0a0,
+          24px 24px #000000, 32px 24px #fbc0a0, 40px 24px #fbc0a0, 48px 24px #000000, 56px 24px #000000, 64px 24px #fbc0a0, 72px 24px #fbc0a0,
+          32px 32px #fbc0a0, 40px 32px #fbc0a0, 48px 32px #fbc0a0, 56px 32px #fbc0a0,
+          24px 40px #e52521, 32px 40px #e52521, 40px 40px #e52521, 48px 40px #e52521, 56px 40px #e52521, 64px 40px #e52521,
+          16px 48px #e52521, 24px 48px #e52521, 32px 48px #e52521, 40px 48px #e52521, 48px 48px #e52521, 56px 48px #e52521, 64px 48px #e52521, 72px 48px #e52521,
+          16px 56px #e52521, 24px 56px #e52521, 32px 56px #e52521, 40px 56px #e52521, 48px 56px #e52521, 56px 56px #e52521, 64px 56px #e52521, 72px 56px #e52521,
+          24px 64px #e52521, 32px 64px #e52521, 40px 64px #e52521, 48px 64px #e52521, 56px 64px #e52521, 64px 64px #e52521,
+          32px 72px #5c94fc, 40px 72px #5c94fc, 48px 72px #5c94fc, 56px 72px #5c94fc,
+          32px 80px #5c94fc, 56px 80px #5c94fc,
+          32px 88px #5c94fc, 56px 88px #5c94fc,
+          24px 96px #5c94fc, 32px 96px #5c94fc, 56px 96px #5c94fc, 64px 96px #5c94fc,
+          16px 104px #fbd000, 24px 104px #fbd000, 64px 104px #fbd000, 72px 104px #fbd000;
+      }
+      50%, 100% {
+        box-shadow: 
+          32px 0px #000000, 40px 0px #000000, 48px 0px #000000, 56px 0px #000000,
+          24px 8px #000000, 32px 8px #000000, 40px 8px #fbc0a0, 48px 8px #fbc0a0, 56px 8px #000000, 64px 8px #000000,
+          24px 16px #000000, 32px 16px #fbc0a0, 40px 16px #ffffff, 48px 16px #fbc0a0, 56px 16px #ffffff, 64px 16px #fbc0a0,
+          24px 24px #000000, 32px 24px #fbc0a0, 40px 24px #fbc0a0, 48px 24px #000000, 56px 24px #000000, 64px 24px #fbc0a0, 72px 24px #fbc0a0,
+          32px 32px #fbc0a0, 40px 32px #fbc0a0, 48px 32px #fbc0a0, 56px 32px #fbc0a0,
+          24px 40px #e52521, 32px 40px #e52521, 40px 40px #e52521, 48px 40px #e52521, 56px 40px #e52521, 64px 40px #e52521,
+          16px 48px #e52521, 24px 48px #e52521, 32px 48px #e52521, 40px 48px #e52521, 48px 48px #e52521, 56px 48px #e52521, 64px 48px #e52521, 72px 48px #e52521,
+          16px 56px #e52521, 24px 56px #e52521, 32px 56px #e52521, 40px 56px #e52521, 48px 56px #e52521, 56px 56px #e52521, 64px 56px #e52521, 72px 56px #e52521,
+          24px 64px #e52521, 32px 64px #e52521, 40px 64px #e52521, 48px 64px #e52521, 56px 64px #e52521, 64px 64px #e52521,
+          32px 72px #5c94fc, 40px 72px #5c94fc, 48px 72px #5c94fc, 56px 72px #5c94fc,
+          32px 80px #5c94fc, 40px 80px #5c94fc, 48px 80px #5c94fc, 56px 80px #5c94fc,
+          32px 88px #5c94fc, 56px 88px #5c94fc,
+          32px 96px #5c94fc, 56px 96px #5c94fc,
+          24px 104px #fbd000, 32px 104px #fbd000, 56px 104px #fbd000, 64px 104px #fbd000;
+      }
+    }
+
+    @keyframes person-travel {
+      0% { left: -100px; }
+      100% { left: calc(100% + 100px); }
+    }
+
+    /* Pixel Art Divider */
+    .pixel-divider {
+      width: 100%;
+      height: 8px;
+      background-image: linear-gradient(to right, 
+        #e52521 0px, #e52521 8px, 
+        #fbd000 8px, #fbd000 16px, 
+        #43a047 16px, #43a047 24px, 
+        #5c94fc 24px, #5c94fc 32px, 
+        #ff2d78 32px, #ff2d78 40px
+      );
+      background-size: 40px 8px;
+      background-repeat: repeat-x;
+      border: none;
+      margin: 0;
+      padding: 0;
+      position: relative;
+      z-index: 10;
+    }
+
+    /* Features Section */
+    .features-section {
+      position: relative;
+      padding: 100px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+      text-align: center;
+      z-index: 10;
+    }
+
+    .section-title {
+      font-family: var(--font-heading);
+      font-size: 2.2rem;
+      color: var(--primary);
+      margin-bottom: 60px;
+      text-shadow: 0 0 8px rgba(57, 255, 20, 0.4);
+      letter-spacing: 2px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 32px;
+      margin-top: 20px;
+    }
+
+    .feature-card {
+      background-color: var(--surface);
+      border: 1px solid rgba(57, 255, 20, 0.3);
+      border-radius: 8px;
+      padding: 40px 30px;
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .feature-card:hover {
+      border-color: var(--primary);
+      box-shadow: var(--border-glow-hover);
+      transform: translateY(-5px);
+    }
+
+    .feature-card:hover::before {
+      opacity: 1;
+    }
+
+    .feature-icon {
+      font-size: 3.5rem;
+      filter: drop-shadow(0 0 10px rgba(57, 255, 20, 0.3));
+      animation: float 4s ease-in-out infinite;
+    }
+
+    .feature-card:nth-child(2) .feature-icon {
+      animation-delay: 1.3s;
+    }
+
+    .feature-card:nth-child(3) .feature-icon {
+      animation-delay: 2.6s;
+    }
+
+    .feature-title {
+      font-family: var(--font-body);
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 1px;
+    }
+
+    .feature-desc {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* How It Works Section */
+    .how-section {
+      position: relative;
+      padding: 100px 20px;
+      max-width: 1000px;
+      margin: 0 auto;
+      text-align: center;
+      z-index: 10;
+    }
+
+    .steps-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      position: relative;
+      margin-top: 80px;
+      gap: 40px;
+    }
+
+    /* Dotted Line Connection */
+    .steps-container::before {
+      content: "";
+      position: absolute;
+      top: 45px;
+      left: 10%;
+      right: 10%;
+      height: 4px;
+      background-image: linear-gradient(to right, var(--primary) 33%, transparent 0%);
+      background-position: top;
+      background-size: 15px 4px;
+      background-repeat: repeat-x;
+      z-index: 1;
+    }
+
+    .step-item {
+      flex: 1;
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .step-number {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background-color: var(--bg);
+      border: 3px solid var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-heading);
+      font-size: 1.8rem;
+      color: var(--secondary);
+      box-shadow: var(--border-glow);
+      transition: all 0.3s ease;
+    }
+
+    .step-item:hover .step-number {
+      border-color: var(--secondary);
+      color: var(--primary);
+      box-shadow: var(--btn-glow-orange);
+      transform: scale(1.1);
+    }
+
+    .step-text {
+      font-size: 1.2rem;
+      color: var(--text);
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-top: 10px;
+      background: var(--bg);
+      padding: 4px 12px;
+    }
+
+    /* Footer CTA Section */
+    .footer-cta {
+      position: relative;
+      padding: 120px 20px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 30px;
+      overflow: hidden;
+      border-top: 1px solid rgba(57, 255, 20, 0.1);
+    }
+
+    /* Subtly Animated Pixel Grid Background */
+    .pixel-grid-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-size: 32px 32px;
+      background-image: 
+        linear-gradient(to right, rgba(57, 255, 20, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(57, 255, 20, 0.04) 1px, transparent 1px);
+      z-index: 1;
+      animation: grid-scroll 20s linear infinite;
+    }
+
+    .footer-content {
+      position: relative;
+      z-index: 2;
+      max-width: 800px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .footer-title {
+      font-family: var(--font-heading);
+      font-size: 3rem;
+      color: var(--text);
+      letter-spacing: 2px;
+      text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+    }
+
+    .footer-subtitle {
+      font-size: 1.4rem;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .footer-info {
+      margin-top: 40px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      opacity: 0.6;
+      letter-spacing: 1px;
+    }
+
+    .footer-info a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .footer-info a:hover {
+      text-decoration: underline;
+    }
+
+    /* Animations */
+    @keyframes flicker {
+      0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+        text-shadow: 0 0 10px rgba(57, 255, 20, 0.5),
+                     0 0 20px rgba(57, 255, 20, 0.3),
+                     0 0 30px rgba(57, 255, 20, 0.2);
+      }
+      20%, 24%, 55% {
+        text-shadow: none;
+        color: rgba(57, 255, 20, 0.4);
+      }
+    }
+
+    @keyframes float {
+      0% {
+        transform: translateY(0px);
+      }
+      50% {
+        transform: translateY(-10px);
+      }
+      100% {
+        transform: translateY(0px);
+      }
+    }
+
+    @keyframes grid-scroll {
+      from {
+        background-position: 0 0;
+      }
+      to {
+        background-position: 0 32px;
+      }
+    }
+
+    /* Responsive Styles */
+    @media (max-width: 900px) {
+      .hero-title {
+        font-size: 3.5rem;
+      }
+      .hero-subtitle {
+        font-size: 1.3rem;
+      }
+      .steps-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 50px;
+      }
+      .steps-container::before {
+        top: 0;
+        left: 50%;
+        width: 4px;
+        height: 80%;
+        background-image: linear-gradient(to bottom, var(--primary) 33%, transparent 0%);
+        background-size: 4px 15px;
+        background-repeat: repeat-y;
+        transform: translateX(-50%);
+      }
+      .step-text {
+        margin-top: 5px;
+      }
+      .footer-title {
+        font-size: 2rem;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .hero-title {
+        font-size: 2.5rem;
+      }
+      .hero-subtitle {
+        font-size: 1.1rem;
+      }
+      .btn-cta {
+        font-size: 1.1rem;
+        padding: 12px 28px;
+      }
+      .section-title {
+        font-size: 1.6rem;
+      }
+      .feature-card {
+        padding: 30px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Retro CRT Scanline Overlay -->
+  <div class="crt-overlay"></div>
+
+  <!-- Hero Section -->
+  <header class="hero-container">
+
+    
+    <!-- Background Scene Layer (Pixel World) -->
+    <div class="pixel-scene">
+      <!-- Stars -->
+      <div class="pixel-star star-1"></div>
+      <div class="pixel-star star-2"></div>
+      <div class="pixel-star star-3"></div>
+
+      <!-- Clouds -->
+      <div class="pixel-cloud cloud-1"></div>
+      <div class="pixel-cloud cloud-2"></div>
+
+      <!-- Static Camera -->
+      <div class="pixel-camera"></div>
+
+      <!-- Walking Person -->
+      <div class="pixel-person"></div>
+    </div>
+
+    <!-- Foreground Content Layer -->
+    <div class="hero-content">
+      <div class="hero-label">[ PIXEL WORLD ]</div>
+      <h1 class="hero-title">
+        WELCOME TO<br>
+        THE PIXEL WORLD<span class="blinking-cursor">_</span>
+      </h1>
+      <p class="hero-subtitle">"Everything looks better in pixels. Now it's your turn."</p>
+      <a href="index.html" class="btn-enter">ENTER THE WORLD &rarr;</a>
+    </div>
+  </header>
+
+  <!-- Pixel Divider -->
+  <div class="pixel-divider"></div>
+
+  <!-- Features Section -->
+  <section class="features-section" id="features">
+    <h2 class="section-title">FEATURES</h2>
+    
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">📷</div>
+        <h3 class="feature-title">LIVE CAMERA</h3>
+        <p class="feature-desc">See yourself in real time, pixelated directly onto the virtual screen.</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">🎨</div>
+        <h3 class="feature-title">PALETTE FILTERS</h3>
+        <p class="feature-desc">Instantly shift palettes: Gameboy, Synthwave, Commodore 64, Neon, and Ash.</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">📸</div>
+        <h3 class="feature-title">CAPTURE</h3>
+        <p class="feature-desc">Freeze your favorite retro composition and download it instantly to your device.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section class="how-section">
+    <h2 class="section-title">HOW IT WORKS</h2>
+    
+    <div class="steps-container">
+      <div class="step-item">
+        <div class="step-number">01</div>
+        <div class="step-text">Open Camera</div>
+      </div>
+      
+      <div class="step-item">
+        <div class="step-number">02</div>
+        <div class="step-text">Pick a Palette</div>
+      </div>
+      
+      <div class="step-item">
+        <div class="step-number">03</div>
+        <div class="step-text">Capture</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer CTA Section -->
+  <footer class="footer-cta">
+    <div class="pixel-grid-bg"></div>
+    
+    <div class="footer-content">
+      <h2 class="footer-title">READY TO PIXELATE?</h2>
+      <p class="footer-subtitle">No sign up. No filters. Just pixels.</p>
+      <a href="index.html" class="btn-cta">PRESS START &rarr;</a>
+      
+      <div class="footer-info">
+        <p>&copy; 2026 PIXEL.CAM. ALL RIGHTS RETRO.</p>
+      </div>
+    </div>
+  </footer>
+
+
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Pixel Art Generator — turn photos and live webcam into retro pixel art with palettes, frames, and capture." />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet" />
+    <title>Pixel Art Generator</title>
+    <link rel="shortcut icon" href="logo.svg" type="image/x-icon" />
+  </head>
+  <body>
+    <div class="header" id="header-bar">
+      <button class="header-btn reset" id="btn-reset">Reset</button>
+      <button class="header-btn undo" id="btn-undo">Undo</button>
+      <button class="header-btn redo" id="btn-redo">Redo</button>
+      <input type="color" value="#00EEFF" class="color-picker" id="color-picker" />
+      <input type="number" value="80" class="grid-count" id="grid-count" />
+      <input type="file" accept="image/*" class="image-upload" id="image-upload" />
+      <button class="header-btn camera-btn" id="btn-camera">Camera</button>
+      <button class="header-btn stop-camera-btn" id="btn-stop-camera" style="display:none;">Stop</button>
+      <button class="header-btn download-btn" id="btn-download">Download</button>
+    </div>
+
+    <!-- Hidden camera modal (legacy, kept for file-based capture) -->
+    <div class="camera-modal" id="camera-modal">
+      <video class="camera-feed" id="camera-feed" autoplay playsinline></video>
+      <div class="camera-controls">
+        <button class="capture-btn" id="modal-capture-btn">Capture</button>
+        <button class="close-camera-btn" id="modal-close-btn">Close</button>
+      </div>
+    </div>
+
+    <!-- Hidden video for live pixelation -->
+    <video id="live-video" autoplay playsinline style="display:none;"></video>
+
+    <!-- Main canvas area -->
+    <div class="canvas-wrapper" id="canvas-wrapper">
+      <div class="container" id="pixel-container"></div>
+      <!-- Frame overlay -->
+      <div class="frame-overlay" id="frame-overlay"></div>
+      <!-- Countdown overlay -->
+      <div class="countdown-overlay" id="countdown-overlay"></div>
+      <!-- Frozen capture preview -->
+      <canvas id="capture-canvas" class="capture-canvas"></canvas>
+    </div>
+
+    <!-- 3-Tab Panel -->
+    <div class="tab-panel" id="tab-panel">
+      <div class="tab-bar" id="tab-bar">
+        <button class="tab-btn active" data-tab="adjust" id="tab-adjust">Adjust</button>
+        <button class="tab-btn" data-tab="frames" id="tab-frames">Frames</button>
+        <button class="tab-btn" data-tab="capture" id="tab-capture">Capture</button>
+      </div>
+
+      <!-- TAB 1 — Adjust -->
+      <div class="tab-content active" id="panel-adjust" data-tab="adjust">
+        <div class="adjust-section">
+          <label class="adjust-label" id="pixel-size-label">PIXEL SIZE — <span id="pixel-size-value">10</span>px</label>
+          <input type="range" min="5" max="30" value="10" class="pixel-slider" id="pixel-slider" />
+        </div>
+        <div class="adjust-section">
+          <label class="adjust-label">PALETTE</label>
+          <div class="palette-grid" id="palette-grid">
+            <button class="palette-btn active" data-palette="original" id="pal-original">
+              <span class="palette-preview original"></span>Original
+            </button>
+            <button class="palette-btn" data-palette="gameboy" id="pal-gameboy">
+              <span class="palette-preview gameboy"></span>Gameboy
+            </button>
+            <button class="palette-btn" data-palette="synthwave" id="pal-synthwave">
+              <span class="palette-preview synthwave"></span>Synthwave
+            </button>
+            <button class="palette-btn" data-palette="c64" id="pal-c64">
+              <span class="palette-preview c64"></span>C64
+            </button>
+            <button class="palette-btn" data-palette="neon" id="pal-neon">
+              <span class="palette-preview neon"></span>Neon
+            </button>
+            <button class="palette-btn" data-palette="ash" id="pal-ash">
+              <span class="palette-preview ash"></span>Ash
+            </button>
+          </div>
+        </div>
+        <div class="adjust-section">
+          <label class="adjust-label">EFFECTS</label>
+          <button class="glitch-toggle" id="btn-glitch">
+            ⚡ Glitch <span class="glitch-status" id="glitch-status">OFF</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB 2 — Frames -->
+      <div class="tab-content" id="panel-frames" data-tab="frames">
+        <div class="frames-grid" id="frames-grid">
+          <button class="frame-btn active" data-frame="none" id="frame-none">
+            <span class="frame-icon">✕</span>None
+          </button>
+          <button class="frame-btn" data-frame="arcade" id="frame-arcade">
+            <span class="frame-icon">🕹️</span>Arcade
+          </button>
+          <button class="frame-btn" data-frame="vhs" id="frame-vhs">
+            <span class="frame-icon">📼</span>VHS
+          </button>
+          <button class="frame-btn" data-frame="glam" id="frame-glam">
+            <span class="frame-icon">✨</span>Glam
+          </button>
+          <button class="frame-btn" data-frame="circuit" id="frame-circuit">
+            <span class="frame-icon">⚡</span>Circuit
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB 3 — Capture -->
+      <div class="tab-content" id="panel-capture" data-tab="capture">
+        <div class="capture-section" id="capture-section">
+          <button class="big-capture-btn" id="btn-big-capture">
+            <span class="capture-ring"></span>
+            <span class="capture-dot"></span>
+          </button>
+          <p class="capture-hint" id="capture-hint">Tap to capture a photo</p>
+          <a class="download-capture-btn hidden" id="btn-download-capture">⬇ Download PNG</a>
+        </div>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
